@@ -325,10 +325,11 @@ class EDVR(nn.Module):
 
     def forward(self, x):
         b, t, c, h, w = x.size()
-        if self.hr_in:
-            assert h % 16 == 0 and w % 16 == 0, ('The height and width must be multiple of 16.')
-        else:
-            assert h % 4 == 0 and w % 4 == 0, ('The height and width must be multiple of 4.')
+
+        # if self.hr_in:
+        #     assert h % 16 == 0 and w % 16 == 0, ('The height and width must be multiple of 16.')
+        # else:
+        #     assert h % 4 == 0 and w % 4 == 0, (f'The {h} and {w} must be multiple of 4.')
 
         x_center = x[:, self.center_frame_idx, :, :, :].contiguous()
 

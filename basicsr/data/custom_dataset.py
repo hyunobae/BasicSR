@@ -13,7 +13,7 @@ from basicsr.utils.registry import DATASET_REGISTRY
 
 
 @DATASET_REGISTRY.register()
-class REDSDataset(data.Dataset):
+class CUSTOMDataset(data.Dataset):
     """CUSTOM dataset for training.
 
     The keys are generated from a meta info txt file.
@@ -53,7 +53,7 @@ class REDSDataset(data.Dataset):
     """
 
     def __init__(self, opt):
-        super(REDSDataset, self).__init__()
+        super(CUSTOMDataset, self).__init__()
         self.opt = opt
         self.gt_root, self.lq_root = Path(opt['dataroot_gt']), Path(opt['dataroot_lq'])
         self.flow_root = Path(opt['dataroot_flow']) if opt['dataroot_flow'] is not None else None
@@ -65,7 +65,7 @@ class REDSDataset(data.Dataset):
         with open(opt['meta_info_file'], 'r') as fin:
             for line in fin:
                 folder, frame_num, _ = line.split(' ')
-                self.keys.extend([f'{folder}/hr{i:d}' for i in range(int(frame_num))])
+                self.keys.extend([f'{folder}/{i:hr%d}' for i in range(int(frame_num))])
 
         # remove the video clips used in validation
         if opt['val_partition'] == 'REDS4':
@@ -120,11 +120,12 @@ class REDSDataset(data.Dataset):
         end_frame_idx = center_frame_idx + self.num_half_frames * interval
         # each clip has 100 frames starting from 0 to 99
         clipnum = len(clipdir)
-        while (start_frame_idx < 0) or (end_frame_idx > clipnum-1):
-            center_frame_idx = random.randint(2, clipnum-3)
+        while (start_frame_idx < 0) or (end_frame_idx > clipnum):
+            center_frame_idx = random.randint(0, clipnum)
             start_frame_idx = (center_frame_idx - self.num_half_frames * interval)
             end_frame_idx = center_frame_idx + self.num_half_frames * interval
-        frame_name = f'hr{center_frame_idx:d}'
+        frame_name = f'{center_frame_idx:%d}'
+        frame_name = 'hr'+frame_name
         neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
         # random reverse
         if self.random_reverse and random.random() < 0.5:
@@ -136,7 +137,7 @@ class REDSDataset(data.Dataset):
         if self.is_lmdb:
             img_gt_path = f'{clip_name}/{frame_name}'
         else:
-            img_gt_path = self.gt_root / clip_name / f'{frame_name}.png'
+            img_gt_path = self.gt_root / clip_name / f'hr{frame_name}.png'
         img_bytes = self.file_client.get(img_gt_path, 'gt')
         img_gt = imfrombytes(img_bytes, float32=True)
 
@@ -146,7 +147,7 @@ class REDSDataset(data.Dataset):
             if self.is_lmdb:
                 img_lq_path = f'{clip_name}/{neighbor:d}'
             else:
-                img_lq_path = self.lq_root / clip_name / f'lr{neighbor:d}.png'
+                img_lq_path = self.lq_root / clip_name / f'hr{neighbor:%d}.png'
             img_bytes = self.file_client.get(img_lq_path, 'lq')
             img_lq = imfrombytes(img_bytes, float32=True)
             img_lqs.append(img_lq)
@@ -217,7 +218,7 @@ class REDSDataset(data.Dataset):
 
 
 @DATASET_REGISTRY.register()
-class REDSRecurrentDataset(data.Dataset):
+class CustomRecurrentDataset(data.Dataset):
     """REDS dataset for training recurrent networks.
 
     The keys are generated from a meta info txt file.

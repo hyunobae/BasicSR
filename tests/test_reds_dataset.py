@@ -18,22 +18,22 @@ def main(mode='folder'):
     opt['name'] = 'REDS'
     opt['type'] = 'REDSDataset'
     if mode == 'folder':
-        opt['dataroot_gt'] = 'datasets/REDS/train_sharp'
-        opt['dataroot_lq'] = 'datasets/REDS/train_sharp_bicubic'
+        opt['dataroot_gt'] = '../datasets/train/gt'
+        opt['dataroot_lq'] = '../datasets/train/lq'
         opt['dataroot_flow'] = None
-        opt['meta_info_file'] = 'basicsr/data/meta_info/meta_info_REDS_GT.txt'
+        opt['meta_info_file'] = '../basicsr/data/meta_info/meta_info_Compressed_GT.txt'
         opt['io_backend'] = dict(type='disk')
     elif mode == 'lmdb':
         opt['dataroot_gt'] = 'datasets/REDS/train_sharp_with_val.lmdb'
         opt['dataroot_lq'] = 'datasets/REDS/train_sharp_bicubic_with_val.lmdb'
         opt['dataroot_flow'] = None
-        opt['meta_info_file'] = 'basicsr/data/meta_info/meta_info_REDS_GT.txt'
+        opt['meta_info_file'] = 'basicsr/data/meta_info/meta_info_Compressed_GT.txt'
         opt['io_backend'] = dict(type='lmdb')
 
     opt['val_partition'] = 'REDS4'
     opt['num_frame'] = 5
-    opt['gt_size'] = 256
-    opt['interval_list'] = [1]
+    opt['gt_size'] = 538
+    opt['interval_list'] = [2]
     opt['random_reverse'] = True
     opt['use_flip'] = True
     opt['use_rot'] = True

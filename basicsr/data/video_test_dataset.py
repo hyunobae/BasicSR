@@ -80,7 +80,7 @@ class VideoTestDataset(data.Dataset):
                 self.data_info['gt_path'].extend(img_paths_gt)
                 self.data_info['folder'].extend([subfolder_name] * max_idx)
                 for i in range(max_idx):
-                    self.data_info['idx'].append(f'{i}/{max_idx}')
+                    self.data_info['idx'].append(f'{i}/lr{max_idx}')
                 border_l = [0] * max_idx
                 for i in range(self.opt['num_frame'] // 2):
                     border_l[i] = 1
