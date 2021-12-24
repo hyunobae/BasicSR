@@ -13,6 +13,9 @@ from basicsr.utils import (AvgTimer, MessageLogger, check_resume, get_env_info, 
                            init_tb_logger, init_wandb_logger, make_exp_dirs, mkdir_and_rename, scandir)
 from basicsr.utils.options import copy_opt_file, dict2str, parse_options
 
+from torchsummary import summary as summary_
+import numpy as np
+
 
 def init_tb_loggers(opt):
     # initialize wandb logger before tensorboard logger to allow proper sync
@@ -158,7 +161,6 @@ def train_pipeline(root_path):
 
         while train_data is not None:
             data_timer.record()
-
             current_iter += 1
             if current_iter > total_iters:
                 break

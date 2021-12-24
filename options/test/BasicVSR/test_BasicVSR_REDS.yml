@@ -8,8 +8,8 @@ datasets:
   test_1:  # the 1st test dataset
     name: REDS4
     type: VideoRecurrentTestDataset
-    dataroot_gt: datasets/REDS4/GT
-    dataroot_lq: datasets/REDS4/sharp_bicubic
+    dataroot_gt: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/test/gt
+    dataroot_lq: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/test/lq
     cache_data: True
     io_backend:
       type: disk
@@ -18,13 +18,13 @@ datasets:
 # network structures
 network_g:
   type: BasicVSR
-  num_feat: 64
-  num_block: 30
+  num_feat: 128
+  num_block: 40
   spynet_path: experiments/pretrained_models/flownet/spynet_sintel_final-3d2a1287.pth
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/BasicVSR/BasicVSR_REDS4-543c8261.pth
+  pretrain_network_g: /home/knuvi/Desktop/hyunobae/BasicSR/experiments/EDVR_L_x4_SR/models/net_g_latest.pth
   strict_load_g: true
 
 # validation settings

@@ -1,0 +1,4 @@
+dec_city 26 (540,960,3)
+dec_walk 34 (540,960,3)
+dec_calendar 41 (540,960,3)
+dec_foliage 49 (540,960,3)

@@ -31,7 +31,8 @@ def test_pipeline(root_path):
         logger.info(f"Number of test images in {dataset_opt['name']}: {len(test_set)}")
         test_loaders.append(test_loader)
 
-    # create model
+
+
     model = build_model(opt)
 
     for test_loader in test_loaders:

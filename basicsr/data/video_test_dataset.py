@@ -101,6 +101,7 @@ class VideoTestDataset(data.Dataset):
     def __getitem__(self, index):
         folder = self.data_info['folder'][index]
         idx, max_idx = self.data_info['idx'][index].split('/')
+        max_idx = max_idx[2:]
         idx, max_idx = int(idx), int(max_idx)
         border = self.data_info['border'][index]
         lq_path = self.data_info['lq_path'][index]

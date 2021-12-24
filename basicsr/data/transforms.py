@@ -123,7 +123,9 @@ def augment(imgs, hflip=True, rotation=True, flows=None, return_status=False):
         if vflip:  # vertical
             cv2.flip(img, 0, img)
         if rot90:
+            # print(img.shape)
             img = img.transpose(1, 0, 2)
+            
         return img
 
     def _augment_flow(flow):

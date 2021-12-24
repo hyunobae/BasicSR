@@ -8,9 +8,9 @@ datasets:
   test:
     name: REDS4
     type: VideoTestDataset
-    dataroot_gt: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/vvc/gt
-    dataroot_lq: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/vvc/lq
-    meta_info_file: basicsr/data/meta_info/meta_info_Compressed_vvc_GT.txt
+    dataroot_gt: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/vid4/gt
+    dataroot_lq: /home/knuvi/Desktop/hyunobae/BasicSR/datasets/vid4/lq
+    meta_info_file: basicsr/data/meta_info/meta_info_Compressed_test_vid4_GT.txt
     io_backend:
       type: disk
 
@@ -35,7 +35,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: /home/knuvi/Desktop/hyunobae/BasicSR/experiments/EDVR_L_x4_SR_RGB_final/models/net_g_600000.pth
+  pretrain_network_g: /home/knuvi/Desktop/hyunobae/BasicSR/experiments/EDVR_L_x4_SR/models/net_g_latest.pth
   strict_load_g: true
 
 # validation settings
@@ -46,5 +46,5 @@ val:
   metrics:
     psnr: # metric name, can be arbitrary
       type: calculate_psnr
-      crop_border: 0
-      test_y_channel: false
+      crop_border: 10
+      test_y_channel: True
