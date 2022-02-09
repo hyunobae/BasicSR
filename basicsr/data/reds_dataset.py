@@ -124,7 +124,20 @@ class REDSDataset(data.Dataset):
             start_frame_idx = (center_frame_idx - self.num_half_frames * interval)
             end_frame_idx = center_frame_idx + self.num_half_frames * interval
         frame_name = f'hr{center_frame_idx:d}'
-        neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
+        
+        # For RD method
+        cur = center_frame_idx
+        i = center_frame_idx // 8
+        left_i = 0 + i * 8
+
+        if (center_frame_idx - left_i) % 2 == 1:  # odd number -> always b frame
+            neighbor_list = [cur - 3, cur - 1, cur + 1, cur + 3]
+
+        else:
+            neighbor_list = [cur - 4, cur - 2, cur + 2, cur + 4]
+        
+        
+        # neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
         # random reverse
         if self.random_reverse and random.random() < 0.5:
             neighbor_list.reverse()
@@ -265,7 +278,7 @@ class REDSRecurrentDataset(data.Dataset):
         with open(opt['meta_info_file'], 'r') as fin:
             for line in fin:
                 folder, frame_num, _ = line.split(' ')
-                self.keys.extend([f'{folder}/{i:08d}' for i in range(int(frame_num))])
+                self.keys.extend([f'{folder}/hr{i:d}' for i in range(int(frame_num))])
 
         # remove the video clips used in validation
         if opt['val_partition'] == 'REDS4':
@@ -318,13 +331,15 @@ class REDSRecurrentDataset(data.Dataset):
         clipdir = os.listdir('/home/knuvi/Desktop/hyunobae/BasicSR/datasets/train/gt' +'/' + clip_name)
         clipnum = len(clipdir)
         # ensure not exceeding the borders
-        start_frame_idx = int(frame_name)
+        start_frame_idx = int(fnum)
         if start_frame_idx > clipnum - self.num_frame * interval:
             start_frame_idx = random.randint(0, clipnum - self.num_frame * interval)
         end_frame_idx = start_frame_idx + self.num_frame * interval
 
         frame_name = f'hr{center_frame_idx:d}'
+        print(frame_name)
         neighbor_list = list(range(start_frame_idx, end_frame_idx, interval))
+        print(neighbor_list)
 
         # random reverse
         if self.random_reverse and random.random() < 0.5:
@@ -339,7 +354,9 @@ class REDSRecurrentDataset(data.Dataset):
                 img_gt_path = f'{clip_name}/{frame_name}'
             else:
                 img_lq_path = self.lq_root / clip_name / f'lr{neighbor:d}.png'
-                img_gt_path = self.gt_root / clip_name / f'{frame_name}.png'
+                img_gt_path = self.gt_root / clip_name / f'hr{neighbor:d}.png'
+                print(img_lq_path)
+                print(img_gt_path)
 
             # get LQ
             img_bytes = self.file_client.get(img_lq_path, 'lq')

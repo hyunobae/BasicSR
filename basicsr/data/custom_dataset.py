@@ -62,10 +62,14 @@ class CUSTOMDataset(data.Dataset):
         self.num_half_frames = opt['num_frame'] // 2
 
         self.keys = []
+
         with open(opt['meta_info_file'], 'r') as fin:
             for line in fin:
                 folder, frame_num, _ = line.split(' ')
-                self.keys.extend([f'{folder}/{i:hr%d}' for i in range(int(frame_num))])
+                folder_root_dir = os.listdir(self.gt_root + '/' + folder)
+                for i in range(int(frame_num)):
+                    if i > 3 or i < len(folder_root_dir)-3: # For RD, exclude 6 frames
+                        self.keys.extend([f'{folder}/{i:hr%d}' for i in range(int(frame_num))])
 
         # remove the video clips used in validation
         if opt['val_partition'] == 'REDS4':
@@ -126,7 +130,20 @@ class CUSTOMDataset(data.Dataset):
             end_frame_idx = center_frame_idx + self.num_half_frames * interval
         frame_name = f'{center_frame_idx:%d}'
         frame_name = 'hr'+frame_name
-        neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
+        #neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
+
+        # Reference distancing method -> GOP size 16
+        cur = center_frame_idx
+        i = center_frame_idx // 8
+        left_i = 0 + i*8
+
+        if (center_frame_idx - left_i) % 2 == 1: # odd number -> always b frame
+            neighbor_list = [cur-3, cur-1, cur+1, cur+3]
+
+        else:
+            neighbor_list = [cur-4, cur-2, cur+2, cur+4]
+
+
         # random reverse
         if self.random_reverse and random.random() < 0.5:
             neighbor_list.reverse()
