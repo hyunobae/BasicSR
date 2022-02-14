@@ -65,7 +65,12 @@ class REDSDataset(data.Dataset):
         with open(opt['meta_info_file'], 'r') as fin:
             for line in fin:
                 folder, frame_num, _ = line.split(' ')
-                self.keys.extend([f'{folder}/hr{i:d}' for i in range(int(frame_num))])
+                fol_len = os.listdir(str(self.gt_root) + '/' + folder)
+                for i in range(int(frame_num)):
+                    if i < 4 or i> len(fol_len)-5:
+                        pass
+                    else:
+                        self.keys.extend([f'{folder}/hr{i:d}'])
 
         # remove the video clips used in validation
         if opt['val_partition'] == 'REDS4':
@@ -115,14 +120,14 @@ class REDSDataset(data.Dataset):
         clipdir = os.listdir('/home/knuvi/Desktop/hyunobae/BasicSR/datasets/train/gt' +'/' + clip_name)
 
         # ensure not exceeding the borders
-        start_frame_idx = center_frame_idx - self.num_half_frames * interval # half = 2, interval = 1
-        end_frame_idx = center_frame_idx + self.num_half_frames * interval
-        # each clip has 100 frames starting from 0 to 99
-        clipnum = len(clipdir)
-        while (start_frame_idx < 0) or (end_frame_idx > clipnum-1):
-            center_frame_idx = random.randint(2, clipnum-3)
-            start_frame_idx = (center_frame_idx - self.num_half_frames * interval)
-            end_frame_idx = center_frame_idx + self.num_half_frames * interval
+        # start_frame_idx = center_frame_idx - self.num_half_frames * interval # half = 2, interval = 1
+        # end_frame_idx = center_frame_idx + self.num_half_frames * interval
+        # # each clip has 100 frames starting from 0 to 99
+        # clipnum = len(clipdir)
+        # while (start_frame_idx < 0) or (end_frame_idx > clipnum-1):
+        #     center_frame_idx = random.randint(2, clipnum-3)
+        #     start_frame_idx = (center_frame_idx - self.num_half_frames * interval)
+        #     end_frame_idx = center_frame_idx + self.num_half_frames * interval
         frame_name = f'hr{center_frame_idx:d}'
         
         # For RD method
@@ -131,11 +136,10 @@ class REDSDataset(data.Dataset):
         left_i = 0 + i * 8
 
         if (center_frame_idx - left_i) % 2 == 1:  # odd number -> always b frame
-            neighbor_list = [cur - 3, cur - 1, cur + 1, cur + 3]
+            neighbor_list = [cur - 3, cur - 1, cur, cur + 1, cur + 3]
 
         else:
-            neighbor_list = [cur - 4, cur - 2, cur + 2, cur + 4]
-        
+            neighbor_list = [cur - 4, cur - 2, cur, cur + 2, cur + 4]
         
         # neighbor_list = list(range(start_frame_idx, end_frame_idx + 1, interval))
         # random reverse
