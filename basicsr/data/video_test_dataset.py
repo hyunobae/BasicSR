@@ -1,4 +1,6 @@
 import glob
+import os
+
 import torch
 from os import path as osp
 from torch.utils import data as data
@@ -51,7 +53,12 @@ class VideoTestDataset(data.Dataset):
         # file client (io backend)
         self.file_client = None
         self.io_backend_opt = opt['io_backend']
+        self.sublen = sorted(glob.glob(osp.join(self.gt_root, '*')))
         assert self.io_backend_opt['type'] != 'lmdb', 'No need to use lmdb during validation/test.'
+        self.folder_cnt = 4
+        self.lq_cnt = 4
+        self.cnt = 0
+        self.lcnt = 0
 
         logger = get_root_logger()
         logger.info(f'Generate data info for VideoTestDataset - {opt["name"]}')
@@ -69,17 +76,42 @@ class VideoTestDataset(data.Dataset):
             for subfolder_lq, subfolder_gt in zip(subfolders_lq, subfolders_gt):
                 # get frame list for lq and gt
                 subfolder_name = osp.basename(subfolder_lq)
-                img_paths_lq = sorted(list(scandir(subfolder_lq, full_path=True)))
-                img_paths_gt = sorted(list(scandir(subfolder_gt, full_path=True)))
+                # img_paths_lq = sorted(list(scandir(subfolder_lq, full_path=True)), key=lambda x:x[:-4])
+                img_paths_gt = [0] * len(os.listdir(subfolder_gt))
+                img_paths_lq = [0] * len(os.listdir(subfolder_gt))
+                for i in scandir(subfolder_lq, full_path=True):
+                    locate = i.find('lr')
+                    name = i[locate + 2:]
+                    name = name[:-4]
+                    img_paths_lq[int(name)] = i
+
+                for j in scandir(subfolder_gt, full_path=True):
+                    print(j)
+                    locate = j.find('hr')
+                    name = j[locate + 2:]
+                    name = name[:-4]
+                    img_paths_gt[int(name)] = j
+
+                # for i in os.listdir(subfolder_lq):
+                #     img = i[2:]
+                #     img = img[:-4]
+                #
+                #     if int(img) < 4 or int(img) > len(os.listdir(subfolder_lq)) - 5:
+                #         pass
+                #
+                #     else:
+                #         img_paths_lq.append(self.lq_root + '/' + subfolder_lq + '/' + 'lr' + img + '.png')
+                #         img_paths_gt.append(self.gt_root + '/' + subfolder_gt + '/' + 'hr' + img + '.png')
 
                 max_idx = len(img_paths_lq)
                 assert max_idx == len(img_paths_gt), (f'Different number of images in lq ({max_idx})'
                                                       f' and gt folders ({len(img_paths_gt)})')
 
+                max_idx = max_idx - 4
                 self.data_info['lq_path'].extend(img_paths_lq)
                 self.data_info['gt_path'].extend(img_paths_gt)
-                self.data_info['folder'].extend([subfolder_name] * max_idx)
-                for i in range(max_idx):
+                self.data_info['folder'].extend([subfolder_name] * (max_idx) )
+                for i in range(4, max_idx): #4~
                     self.data_info['idx'].append(f'{i}/lr{max_idx}')
                 border_l = [0] * max_idx
                 for i in range(self.opt['num_frame'] // 2):
@@ -99,35 +131,69 @@ class VideoTestDataset(data.Dataset):
             raise ValueError(f'Non-supported video test dataset: {type(opt["name"])}')
 
     def __getitem__(self, index):
-        folder = self.data_info['folder'][index]
         idx, max_idx = self.data_info['idx'][index].split('/')
         max_idx = max_idx[2:]
         idx, max_idx = int(idx), int(max_idx)
-        border = self.data_info['border'][index]
-        lq_path = self.data_info['lq_path'][index]
 
-        select_idx = generate_frame_indices(idx, max_idx, self.opt['num_frame'], padding=self.opt['padding'])
+        #print(len(self.data_info['folder']), self.folder_cnt)
+        #print(self.data_info['folder'][self.folder_cnt:self.folder_cnt+9])
+        #print(idx, max_idx)
+
+        if index > 0:
+            self.folder_cnt = self.folder_cnt + 1
+            self.lq_cnt = self.lq_cnt + 1
+            if idx == 4:
+                self.cnt = self.cnt + 1
+                self.folder_cnt = self.folder_cnt + 4
+
+        # folder = self.data_info['folder'][index]
+        folder = self.data_info['folder'][self.folder_cnt]
+
+        border = self.data_info['border'][index]
+        lq_path = self.data_info['lq_path'][self.folder_cnt]
+        # lq_path = self.data_info['lq_path'][index]
+
+        gtpath = str(self.imgs_gt[folder][idx])
+        #print(gtpath)
+        locategt = gtpath.find('gt')
+        locatehr = gtpath.find('/hr')
+        hrtolr = gtpath[locatehr:].replace("hr", "lr")
+        lq___path = gtpath[:locategt] + 'lq/' + folder + hrtolr
+        # #print(f"lq___path: {lq___path}")
+
+        #print(f"index: {index}, folder: {folder}, folder_idx: {self.folder_cnt}")
+        # select_idx = generate_frame_indices(idx, max_idx, self.opt['num_frame'], padding=self.opt['padding'])
+
+        if idx % 2 == 0:
+            select_idx = [idx - 4, idx - 2, idx, idx + 2, idx + 4]
+        else:
+            select_idx = [idx - 3, idx - 1, idx, idx + 1, idx + 3]
+
+        #print(select_idx)
 
         if self.cache_data:
             imgs_lq = self.imgs_lq[folder].index_select(0, torch.LongTensor(select_idx))
             img_gt = self.imgs_gt[folder][idx]
         else:
             img_paths_lq = [self.imgs_lq[folder][i] for i in select_idx]
+            #print(img_paths_lq)
             imgs_lq = read_img_seq(img_paths_lq)
             img_gt = read_img_seq([self.imgs_gt[folder][idx]])
             img_gt.squeeze_(0)
 
+        #print(self.imgs_gt[folder][idx], folder, self.data_info['idx'][index], lq_path)
         return {
             'lq': imgs_lq,  # (t, c, h, w)
             'gt': img_gt,  # (c, h, w)
             'folder': folder,  # folder name
             'idx': self.data_info['idx'][index],  # e.g., 0/99
             'border': border,  # 1 for border, 0 for non-border
-            'lq_path': lq_path  # center frame
+            'lq_path': lq___path  # center frame
         }
 
     def __len__(self):
-        return len(self.data_info['gt_path'])
+        # return len(self.data_info['gt_path'])
+        return len(self.data_info['gt_path']) - len(self.sublen) * 8
 
 
 @DATASET_REGISTRY.register()

@@ -50,6 +50,7 @@ class VideoBaseModel(SRModel):
             folder = val_data['folder']
             frame_idx, max_idx = val_data['idx'].split('/')
             lq_path = val_data['lq_path']
+            #print(lq_path)
 
             self.feed_data(val_data)
             self.test()
@@ -81,7 +82,7 @@ class VideoBaseModel(SRModel):
                                                  f'{img_name}_{self.opt["val"]["suffix"]}.png')
                     else:
                         save_img_path = osp.join(self.opt['path']['visualization'], dataset_name, folder,
-                                                 f'{img_name}_{self.opt["name"]}.png')
+                                                 f'{img_name}.png')
                 imwrite(result_img, save_img_path)
 
             if with_metrics:

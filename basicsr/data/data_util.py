@@ -64,7 +64,8 @@ def generate_frame_indices(crt_idx, max_frame_num, num_frames, padding='reflecti
     assert padding in ('replicate', 'reflection', 'reflection_circle', 'circle'), f'Wrong padding mode: {padding}.'
 
     max_frame_num = max_frame_num - 1  # start from 0
-    num_pad = num_frames // 2
+    # max_frame_num = max_frame_num - 5
+    num_pad = num_frames // 2 # 2
 
     indices = []
     for i in range(crt_idx - num_pad, crt_idx + num_pad + 1):
@@ -89,6 +90,13 @@ def generate_frame_indices(crt_idx, max_frame_num, num_frames, padding='reflecti
         else:
             pad_idx = i
         indices.append(pad_idx)
+
+    # if crt_idx % 2 == 0:
+    #     indices = [crt_idx-4, crt_idx-2, crt_idx, crt_idx+2, crt_idx+4]
+    #
+    # else:
+    #     indices = [crt_idx-3, crt_idx-1, crt_idx, crt_idx+1, crt_idx+3]
+
     return indices
 
 
